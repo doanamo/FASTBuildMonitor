@@ -23,6 +23,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using EnvDTE;
 using EnvDTE80;
+using System.Net;
 
 namespace FASTBuildMonitorVSIX
 {
@@ -1097,7 +1098,8 @@ namespace FASTBuildMonitorVSIX
 
                 _coreIndex = coreIndex;
 
-                _textBlock.Text = string.Format("{0} (Core # {1})", parent._name, _coreIndex);
+                _textBlock.Text = string.Format("{0} (Core # {1})", parent._resolvedName, _coreIndex);
+                _textBlock.ToolTip = parent._name == _cLocalHostName ? "127.0.0.1" : parent._name;
 
                 _StaticWindow.CoresCanvas.Children.Add(_textBlock);
 
@@ -1261,6 +1263,7 @@ namespace FASTBuildMonitorVSIX
         public class BuildHost
         {
             public string _name;
+            public string _resolvedName;
             public List<CPUCore> _cores = new List<CPUCore>();
             public bool bLocalHost = false;
 
@@ -1272,6 +1275,23 @@ namespace FASTBuildMonitorVSIX
                 _name = name;
 
                 bLocalHost = name.Contains(_cLocalHostName);
+
+                if (!bLocalHost)
+                {
+                    try
+                    {
+                        var dnsEntry = Dns.GetHostEntry(name);
+                        _resolvedName = dnsEntry.HostName.Split('.')[0]; // Only get name without domain
+                    }
+                    catch (Exception)
+                    {
+                        _resolvedName = name;
+                    }
+                }
+                else
+                {
+                    _resolvedName = name;
+                }
 
                 // Add line separator
                 _StaticWindow.CoresCanvas.Children.Add(_lineSeparator);

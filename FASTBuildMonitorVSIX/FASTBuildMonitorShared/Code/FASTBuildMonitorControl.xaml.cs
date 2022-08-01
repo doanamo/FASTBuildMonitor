@@ -1504,6 +1504,7 @@ namespace FASTBuildMonitorVSIX
             public static ImageBrush _sSuccessNonCodeBrush = new ImageBrush();
             public static ImageBrush _sSuccessPreprocessedBrush = new ImageBrush();
             public static ImageBrush _sSuccessCachedBrush = new ImageBrush();
+            public static ImageBrush _sSuccessLinkerBrush = new ImageBrush();
             public static ImageBrush _sFailedBrush = new ImageBrush();
             public static ImageBrush _sTimeoutBrush = new ImageBrush();
             public static ImageBrush _sRunningBrush = new ImageBrush();
@@ -1525,6 +1526,7 @@ namespace FASTBuildMonitorVSIX
                 _sSuccessNonCodeBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_noncode);
                 _sSuccessPreprocessedBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_preprocessed);
                 _sSuccessCachedBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_cached);
+                _sSuccessLinkerBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_linker);
                 _sFailedBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Failed);
                 _sTimeoutBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Timeout);
                 _sRunningBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Running);
@@ -1598,7 +1600,12 @@ namespace FASTBuildMonitorVSIX
 							{
 								_brush = _sSuccessCodeBrush;
 							}
-							else
+							else if(_name.Contains(".exe") ||_name.Contains(".dll") || _name.Contains(".lib")
+                                || _name.Contains(".a") || _name.Contains(".elf") )
+                            {
+                                _brush = _sSuccessLinkerBrush;
+                            }
+                            else
 							{
 								_brush = _sSuccessNonCodeBrush;
 							}

@@ -69,6 +69,7 @@
     <Content Include="$(MSBuildThisFileDirectory)Resources\FASTBuildMonitorPackage.ico" />
     <Content Include="$(MSBuildThisFileDirectory)Resources\race_flag.png" />
     <Content Include="$(MSBuildThisFileDirectory)Resources\Success-code.png" />
+    <Content Include="$(MSBuildThisFileDirectory)Resources\Success-linker.png" />
     <Content Include="$(MSBuildThisFileDirectory)Resources\Success-noncode.png" />
     <Content Include="$(MSBuildThisFileDirectory)stylesheet.css" />
   </ItemGroup>

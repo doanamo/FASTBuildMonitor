@@ -215,7 +215,19 @@ namespace FASTBuildMonitorVSIX.Resources {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Success_linker
+        {
+            get
+            {
+                object obj = ResourceManager.GetObject("Success_linker", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>

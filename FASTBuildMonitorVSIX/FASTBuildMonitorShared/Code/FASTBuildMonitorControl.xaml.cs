@@ -1569,7 +1569,7 @@ namespace FASTBuildMonitorVSIX
 
                 _toolTipText = _name.Replace("\"", "");
 
-                _fileName = System.IO.Path.GetFileName(_name.Replace("\"", ""));
+                _fileName = System.IO.Path.GetFileName(_name.Replace("\"", "").Split('|')[0]);
 
                 _timeStarted = timeStarted;
 

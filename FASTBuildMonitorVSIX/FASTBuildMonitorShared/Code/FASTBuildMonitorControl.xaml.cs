@@ -1540,7 +1540,7 @@ namespace FASTBuildMonitorVSIX
 			// Constants
 			private const int _cTextLabeloffset_X = 4;
             private const int _cTextLabeloffset_Y = 4;
-            private const double _cMinTextLabelWidthThreshold = 50.0f; // The minimum element width to be eligible for text display
+            private const double _cMinTextLabelWidthThreshold = 35.0f; // The minimum element width to be eligible for text display
             private const double _cMinDotDotDotWidthThreshold = 20.0f; // The minimum element width to be eligible for a "..." display
 			private const double _cRacingIconWidth = 20.0f;
 

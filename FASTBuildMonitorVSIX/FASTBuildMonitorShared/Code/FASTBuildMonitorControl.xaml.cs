@@ -617,9 +617,13 @@ namespace FASTBuildMonitorVSIX
                 {
                     zoomMultiplier = 3.0f;
                 }
-                else
+                else if( _zoomFactor < 30.0f )
                 {
                     zoomMultiplier = 6.0f;
+                }
+                else
+                {
+                    zoomMultiplier = 100.0f;
                 }
             }
             else if (_zoomFactor < 0.5f)
@@ -638,7 +642,7 @@ namespace FASTBuildMonitorVSIX
             double oldZoomValue = _zoomFactor;
 
             _zoomFactor += zoomMultiplier * (double)e.Delta / 1000.0f;
-            _zoomFactor = Math.Min(_zoomFactor, 30.0f);
+            _zoomFactor = Math.Min(_zoomFactor, 270.0f);
             _zoomFactor = Math.Max(_zoomFactor, 0.05f);
 
             if (oldZoomValue != _zoomFactor)

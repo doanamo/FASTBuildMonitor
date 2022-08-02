@@ -1136,9 +1136,9 @@ namespace FASTBuildMonitorVSIX
                 return bOK;
             }
 
-            public bool UnScheduleEvent(Int64 timeCompleted, string eventName, BuildEventState jobResult, bool bIsLocalJob, string outputMessages, bool bForce = false)
+            public bool UnScheduleEvent(Int64 timeCompleted, string eventName, string nodeType, BuildEventState jobResult, bool bIsLocalJob, string outputMessages, bool bForce = false)
             {
-                bool bOK = (_activeEvent != null && (_activeEvent._name == eventName || bForce));
+                bool bOK = (_activeEvent != null && ((_activeEvent._name == eventName && _activeEvent._nodeType == nodeType) || bForce));
 
                 if (bOK)
                 {
@@ -1337,13 +1337,13 @@ namespace FASTBuildMonitorVSIX
                 }
             }
 
-            public void OnCompleteEvent(Int64 timeCompleted, string eventName, string hostName, BuildEventState jobResult, string outputMessages)
+            public void OnCompleteEvent(Int64 timeCompleted, string eventName, string hostName, string nodeType, BuildEventState jobResult, string outputMessages)
             {
 				bool bLocalJob = (hostName == _name);	// determine if we own the job that's about to be completed
 
                 for (int i = 0; i < _cores.Count; ++i)
                 {
-                    if (_cores[i].UnScheduleEvent(timeCompleted, eventName, jobResult, bLocalJob, outputMessages))
+                    if (_cores[i].UnScheduleEvent(timeCompleted, eventName, nodeType, jobResult, bLocalJob, outputMessages))
                     {
                         break;
                     }
@@ -1504,6 +1504,7 @@ namespace FASTBuildMonitorVSIX
 
             public string _name;
             public string _fileName; // extracted from the full name
+            public string _nodeType; // optional, not provided by older protocol
 
             public BuildEventState _state;
 
@@ -1612,7 +1613,8 @@ namespace FASTBuildMonitorVSIX
                 //    totalTimeSeconds = 0.001f;
                 //}
 
-                _toolTipText = string.Format("{0}", _name.Replace("\"", "")) + "\nStatus: ";
+                _toolTipText = _nodeType == null ? "" : $"{_nodeType}: ";
+                _toolTipText += string.Format("{0}", _name.Replace("\"", "")) + "\nStatus: ";
 
                 _state = jobResult;
 
@@ -1620,19 +1622,39 @@ namespace FASTBuildMonitorVSIX
                 {
                     case BuildEventState.SUCCEEDED_COMPLETED:
 						{
-							if (_name.Contains(".obj"))
-							{
-								_brush = _sSuccessCodeBrush;
-							}
-							else if(_name.Contains(".exe") ||_name.Contains(".dll") || _name.Contains(".lib")
-                                || _name.Contains(".a") || _name.Contains(".elf") )
+                            if (_nodeType != null)
                             {
-                                _brush = _sSuccessLinkerBrush;
+                                if (_nodeType == "Object")
+                                {
+                                    _brush = _sSuccessCodeBrush;
+                                }
+                                else if (_nodeType == "Exe" || _nodeType == "Library" || _nodeType == "DLL")
+                                {
+                                    _brush = _sSuccessLinkerBrush;
+                                }
+                                else
+                                {
+                                    _brush = _sSuccessNonCodeBrush;
+                                }
                             }
                             else
-							{
-								_brush = _sSuccessNonCodeBrush;
-							}
+                            {
+                                // Old code path left for compatibility with previous protocol that does not provide node types.
+                                if (_name.Contains(".obj"))
+                                {
+                                    _brush = _sSuccessCodeBrush;
+                                }
+                                else if (_name.Contains(".exe") || _name.Contains(".dll") || _name.Contains(".lib")
+                                    || _name.Contains(".a") || _name.Contains(".elf"))
+                                {
+                                    _brush = _sSuccessLinkerBrush;
+                                }
+                                else
+                                {
+                                    _brush = _sSuccessNonCodeBrush;
+                                }
+                            }
+
 							_toolTipText += "Success";
 
 							if (bIsLocalJob)
@@ -2087,11 +2109,13 @@ namespace FASTBuildMonitorVSIX
 
             public const int START_JOB_HOST_NAME = 2;
             public const int START_JOB_EVENT_NAME = 3;
+            public const int START_JOB_NODE_TYPE = 4;
 
             public const int FINISH_JOB_RESULT = 2;
             public const int FINISH_JOB_HOST_NAME = 3;
             public const int FINISH_JOB_EVENT_NAME = 4;
             public const int FINISH_JOB_OUTPUT_MESSAGES = 5;
+            public const int FINISH_JOB_NODE_TYPE = 6;
 
             public const int PROGRESS_STATUS_PROGRESS_PCT = 2;
 
@@ -2175,6 +2199,8 @@ namespace FASTBuildMonitorVSIX
 
                     foreach (string eventString in newEvents)
                     {
+                        // Warning! This regex has a bug and will not tokenize following string properly (in case you would like to update format/protocol):
+                        // 133039289069340000 FINISH_JOB SUCCESS_COMPLETE local "Z:\some\example\file.cpp" "" "File"
                         string[] tokens = Regex.Matches(eventString, @"[\""].+?[\""]|[^ ]+")
                                          .Cast<Match>()
                                          .Select(m => m.Value)
@@ -2285,7 +2311,7 @@ namespace FASTBuildMonitorVSIX
 
             if (_bPreparingBuildsteps)
             {
-                _localHost.OnCompleteEvent(timeStamp, _cPrepareBuildStepsText, "", BuildEventState.SUCCEEDED_COMPLETED, "");
+                _localHost.OnCompleteEvent(timeStamp, _cPrepareBuildStepsText, "", null, BuildEventState.SUCCEEDED_COMPLETED, "");
 
 				_bPreparingBuildsteps = false;
 			}
@@ -2296,7 +2322,7 @@ namespace FASTBuildMonitorVSIX
                 BuildHost host = entry.Value as BuildHost;
                 foreach (CPUCore core in host._cores)
                 {
-                    core.UnScheduleEvent(timeStamp, _cPrepareBuildStepsText, BuildEventState.TIMEOUT, false, "", true);
+                    core.UnScheduleEvent(timeStamp, _cPrepareBuildStepsText, null, BuildEventState.TIMEOUT, false, "", true);
                 }
             }
 
@@ -2325,12 +2351,17 @@ namespace FASTBuildMonitorVSIX
 
             if (_bPreparingBuildsteps)
             {
-                _localHost.OnCompleteEvent(timeStamp, _cPrepareBuildStepsText, hostName, BuildEventState.SUCCEEDED_COMPLETED, "");
+                _localHost.OnCompleteEvent(timeStamp, _cPrepareBuildStepsText, hostName, null, BuildEventState.SUCCEEDED_COMPLETED, "");
 
 				_bPreparingBuildsteps = false;
 			}
 
 			BuildEvent newEvent = new BuildEvent(eventName, timeStamp);
+
+            if (tokens.Length > CommandArgumentIndex.START_JOB_NODE_TYPE)
+            {
+                newEvent._nodeType = tokens[CommandArgumentIndex.START_JOB_NODE_TYPE];
+            }
 
             BuildHost host = null;
             if (_hosts.ContainsKey(hostName))
@@ -2377,11 +2408,17 @@ namespace FASTBuildMonitorVSIX
             string eventName = tokens[CommandArgumentIndex.FINISH_JOB_EVENT_NAME];
 
             string eventOutputMessages = "";
+            string nodeType = null;
 
             // Optional parameters
             if (tokens.Length > CommandArgumentIndex.FINISH_JOB_OUTPUT_MESSAGES)
             {
                 eventOutputMessages = tokens[CommandArgumentIndex.FINISH_JOB_OUTPUT_MESSAGES].Substring(1, tokens[CommandArgumentIndex.FINISH_JOB_OUTPUT_MESSAGES].Length - 2);
+            }
+
+            if (tokens.Length > CommandArgumentIndex.FINISH_JOB_NODE_TYPE)
+            {
+                nodeType = tokens[CommandArgumentIndex.FINISH_JOB_NODE_TYPE];
             }
 
             BuildEventState jobResult = TranslateBuildEventState(jobResultString);
@@ -2390,7 +2427,7 @@ namespace FASTBuildMonitorVSIX
             {
                 BuildHost host = entry.Value as BuildHost;
 								
-                host.OnCompleteEvent(timeStamp, eventName, hostName, jobResult, eventOutputMessages);
+                host.OnCompleteEvent(timeStamp, eventName, hostName, nodeType, jobResult, eventOutputMessages);
             }
 
             UpdateBuildStatus(jobResult);

@@ -1018,7 +1018,6 @@ namespace FASTBuildMonitorVSIX
 
             //WPF stuff
             public TextBlock _textBlock = new TextBlock();
-            public static Image _sLODImage = null;
             public ToolTip _toolTip = new ToolTip();
             public Line _lineSeparator = new Line();
 
@@ -1112,13 +1111,6 @@ namespace FASTBuildMonitorVSIX
 
                 this.Height = pix_height;
 
-                if (_sLODImage == null)
-                {
-
-                    _sLODImage = new Image();
-                    _sLODImage.Source = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.LODBlock);
-                }
-
                 this.ToolTip = _toolTip;
             }
 
@@ -1175,17 +1167,7 @@ namespace FASTBuildMonitorVSIX
 
                     if (IsObjectVisible(absoluteRect))
                     {
-                        VisualBrush brush = new VisualBrush();
-                        brush.Visual = _sLODImage;
-                        brush.Stretch = Stretch.None;
-                        brush.TileMode = TileMode.Tile;
-                        brush.AlignmentY = AlignmentY.Top;
-                        brush.AlignmentX = AlignmentX.Left;
-                        brush.ViewportUnits = BrushMappingMode.Absolute;
-                        brush.Viewport = new Rect(0, 0, 40, 20);
-
-                        dc.DrawRectangle(brush, new Pen(Brushes.Black, 1), _currentLODRect);
-
+                        dc.DrawRectangle(BuildEvent._sLODBrush, new Pen(Brushes.Black, 1), _currentLODRect);
                         AddVisibleElement(_currentLODRect, string.Format("{0} events", _currentLODCount));
                     }
 
@@ -1536,6 +1518,8 @@ namespace FASTBuildMonitorVSIX
 			public static ImageBrush _sRacingIconBrush = new ImageBrush();
 			public static ImageBrush _sRacingWinIconBrush = new ImageBrush();
 			public static ImageBrush _sRacingLostIconBrush = new ImageBrush();
+            public static VisualBrush _sDefaultBrush = new VisualBrush();
+            public static VisualBrush _sLODBrush = new VisualBrush();
 
 			// Constants
 			private const int _cTextLabeloffset_X = 4;
@@ -1547,6 +1531,8 @@ namespace FASTBuildMonitorVSIX
 
             public static void StaticInitialize()
             {
+                _sbInitialized = true;
+
                 _sSuccessCodeBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_code);
                 _sSuccessNonCodeBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_noncode);
                 _sSuccessPreprocessedBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.Success_preprocessed);
@@ -1559,7 +1545,30 @@ namespace FASTBuildMonitorVSIX
 				_sRacingWinIconBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.race_flag_win);
 				_sRacingLostIconBrush.ImageSource = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.race_flag_lost);
 
-				_sbInitialized = true;
+                _sSuccessCodeBrush.Freeze();
+                _sSuccessNonCodeBrush.Freeze();
+                _sSuccessPreprocessedBrush.Freeze();
+                _sSuccessCachedBrush.Freeze();
+                _sSuccessLinkerBrush.Freeze();
+                _sFailedBrush.Freeze();
+                _sTimeoutBrush.Freeze();
+                _sRunningBrush.Freeze();
+                _sRacingIconBrush.Freeze();
+                _sRacingWinIconBrush.Freeze();
+                _sRacingLostIconBrush.Freeze();
+
+                var LODImage = new Image();
+                LODImage.Source = GetBitmapImage(FASTBuildMonitorVSIX.Resources.Images.LODBlock);
+
+                _sLODBrush.Visual = LODImage;
+                _sLODBrush.Stretch = Stretch.None;
+                _sLODBrush.TileMode = TileMode.Tile;
+                _sLODBrush.AlignmentY = AlignmentY.Top;
+                _sLODBrush.AlignmentX = AlignmentX.Left;
+                _sLODBrush.ViewportUnits = BrushMappingMode.Absolute;
+                _sLODBrush.Viewport = new Rect(0, 0, 40, 20);
+
+                _sDefaultBrush.Freeze();
             }
 
             public BuildEvent(string name, Int64 timeStarted)
@@ -1864,21 +1873,12 @@ namespace FASTBuildMonitorVSIX
                         if (distance > 5.0f)
                         {
                             // if the distance is above the threshold close the current LOD block and start a new one
-                            VisualBrush brush = new VisualBrush();
-                            brush.Visual = CPUCore._sLODImage;
-                            brush.Stretch = Stretch.None;
-                            brush.TileMode = TileMode.Tile;
-                            brush.AlignmentY = AlignmentY.Top;
-                            brush.AlignmentX = AlignmentX.Left;
-                            brush.ViewportUnits = BrushMappingMode.Absolute;
-                            brush.Viewport = new Rect(0, 0, 40, 6);
-
                             if (IsObjectVisibleInternal(_core._currentLODRect))
                             {
 #if ENABLE_RENDERING_STATS
                                 _StaticWindow._numShapesDrawn++;
 #endif
-                                dc.DrawRectangle(brush, new Pen(Brushes.Gray, 1), _core._currentLODRect);
+                                dc.DrawRectangle(_sLODBrush, new Pen(Brushes.Gray, 1), _core._currentLODRect);
 
                                 _core.AddVisibleElement(_core._currentLODRect, string.Format("{0} events", _core._currentLODCount));
                             }
@@ -1908,21 +1908,12 @@ namespace FASTBuildMonitorVSIX
                 {
                     if (_core.IsLODBlockActive())
                     {
-                        VisualBrush brush = new VisualBrush();
-                        brush.Visual = CPUCore._sLODImage;
-                        brush.Stretch = Stretch.None;
-                        brush.TileMode = TileMode.Tile;
-                        brush.AlignmentY = AlignmentY.Top;
-                        brush.AlignmentX = AlignmentX.Left;
-                        brush.ViewportUnits = BrushMappingMode.Absolute;
-                        brush.Viewport = new Rect(0, 0, 40, 6);
-
                         if (IsObjectVisibleInternal(_core._currentLODRect))
                         {
 #if ENABLE_RENDERING_STATS
                         _StaticWindow._numShapesDrawn++;
 #endif
-                            dc.DrawRectangle(brush, new Pen(Brushes.Gray, 1), _core._currentLODRect);
+                            dc.DrawRectangle(_sLODBrush, new Pen(Brushes.Gray, 1), _core._currentLODRect);
 
                             _core.AddVisibleElement(_core._currentLODRect, string.Format("{0} events", _core._currentLODCount));
                         }
@@ -1973,7 +1964,7 @@ namespace FASTBuildMonitorVSIX
                                     break;
                             }
 
-                            dc.DrawRectangle(new VisualBrush(), new Pen(Brushes.Gray, 1), _bordersRect);
+                            dc.DrawRectangle(_sDefaultBrush, new Pen(Brushes.Gray, 1), _bordersRect);
 
 							if (_isRacingJob && _progressRect.Width >= _cRacingIconWidth)
 							{

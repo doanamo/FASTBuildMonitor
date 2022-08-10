@@ -58,7 +58,7 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MaxWidth="250"/>
+                        <ColumnDefinition Width="Auto" MaxWidth="500"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <ScrollViewer x:Name="SystemGraphsScrollViewer" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" Grid.Row="0" Grid.Column="1" Margin="7,0,20,0" VerticalAlignment="Top" Width="Auto" Height ="Auto">
@@ -72,7 +72,7 @@
                     </ScrollViewer>
                     <TreeView x:Name="graphsSelectionTreeView" BorderBrush="#FFDEE2EA" Visibility =" Hidden" Margin="0,0,0,0" Grid.Row="0" Grid.Column="0" Height="150"/>
                     <ScrollViewer x:Name="CoresScrollViewer" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Hidden" Margin="10,10,10,25" Grid.Row="2" Grid.Column="0" >
-                        <Canvas x:Name="CoresCanvas" HorizontalAlignment="Left" Height="366" VerticalAlignment="Top" Width="148" Margin="0,0,0,0"/>
+                        <Canvas x:Name="CoresCanvas" HorizontalAlignment="Left" Height="366" VerticalAlignment="Top" Width="170" Margin="0,0,0,0"/>
                     </ScrollViewer>
                 </Grid>
             </TabItem>

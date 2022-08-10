@@ -2186,6 +2186,12 @@ namespace FASTBuildMonitorVSIX
                     SetConditionalRenderUpdateFlag(true);
 
                     string newEventsRaw = System.Text.Encoding.Default.GetString(_fileBuffer.GetRange(_lastProcessedPosition, newPayLoadSize).ToArray());
+                    
+                    // Sanitize new lines in quotes.
+                    newEventsRaw = string.Join("\"", newEventsRaw.Split('\"')
+                        .Select((element, index) => index % 2 == 0 ? element : element.Replace("\n", "\\n"))
+                        .ToArray());
+
                     string[] newEvents = newEventsRaw.Split(new char[] { '\n' });
 
                     foreach (string eventString in newEvents)

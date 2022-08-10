@@ -297,7 +297,8 @@ namespace FASTBuildMonitorVSIX
                 {
                     if (filter._buildEvent != null && (selectedFilter._buildEvent == null || filter._buildEvent == selectedFilter._buildEvent))
                     {
-                        OutputTextBox.AppendText(filter._buildEvent._outputMessages + "\n");
+                        string textData = Regex.Replace(filter._buildEvent._outputMessages, @"(?<!\\)\\n", "\n");
+                        OutputTextBox.AppendText(textData + "\n");
                     }
                 }
             }

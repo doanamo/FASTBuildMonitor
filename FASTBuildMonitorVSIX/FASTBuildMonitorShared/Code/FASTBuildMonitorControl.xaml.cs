@@ -234,12 +234,7 @@ namespace FASTBuildMonitorVSIX
                         result = _internalName;
                     }
 
-                    const int charactersToDisplay = 50;
-
-                    if (result.Length > charactersToDisplay)
-                    {
-                        result = result.Substring(result.IndexOf('\\', result.Length - charactersToDisplay));
-                    }
+                    result = result.Substring(result.LastIndexOf('\\') + 1);
 
                     return result;
                 }
